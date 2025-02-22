@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: webcolor
+  namespace: argocd
+  labels:
+    curso: gitops
+spec:
+  project: default
+  # project: web-page-deploy
+  source:
+    repoURL: https://github.com/wallafidevops/app-of-apps-argocd
+    path: webcolors
+    targetRevision: HEAD
+    directory:
+      recurse: true ## acesssar subpastas /webcolor e /nginx
+  syncPolicy:
+    automated:
+      prune: true  ### remove recursos que não estão no git
+      allowEmpty: true ### permite que o diretório esteja vazio
+      selfHeal: true ### corrige o estado do cluster , caso tiver udanças fora do git 
+    syncOptions:
+      - Validate=true ### valida o recurso antes de aplicar
+      - CreateNamespace=true ### cria o namespace caso não exista
+      - PrunePropagationPolicy=Foreground ### remove recursos filhos antes do pai     
+      - PruneLast=false ### remove o último recurso para não ter downtime    
+      - ApplyOutOfSyncOnly=false ### aplica tudo que está fora de sincronia      
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argocd ###aplicações de app-of-apps precisam estar em namespace argocd
+  info: 
+    - name: Projeto
+      value: Webcolor
+
